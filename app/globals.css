@@ -1,26 +1,130 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-comic-red: #c0272f;
+  --color-sky-blue: #29aae0;
+  --color-hero-green: #019245;
+  --color-golden-orange: #e58622;
+  --color-action-orange: #f35e24;
+  --color-comic-black: #111111;
+  --color-warm-white: #fff9f4;
+  --color-white: #ffffff;
+
+  --background: var(--color-warm-white);
+  --foreground: var(--color-comic-black);
 }
 
 @theme inline {
+  --color-comic-red: var(--color-comic-red);
+  --color-sky-blue: var(--color-sky-blue);
+  --color-hero-green: var(--color-hero-green);
+  --color-golden-orange: var(--color-golden-orange);
+  --color-action-orange: var(--color-action-orange);
+  --color-comic-black: var(--color-comic-black);
+  --color-warm-white: var(--color-warm-white);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  --font-display: var(--font-bangers);
+  --font-sans: var(--font-poppins);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@media (prefers-reduced-motion: no-preference) {
+  .motion-safe-wiggle:hover {
+    transform: rotate(-1.5deg) scale(1.03);
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+h1,
+h2,
+h3,
+.font-display {
+  font-family: var(--font-display), "Bangers", cursive;
+  letter-spacing: 0.03em;
+}
+
+/* Comic-panel border: thick black ink outline + offset drop shadow */
+.comic-panel {
+  border: 3px solid var(--color-comic-black);
+  box-shadow: 6px 6px 0 var(--color-comic-black);
+}
+
+.comic-panel-sm {
+  border: 2px solid var(--color-comic-black);
+  box-shadow: 4px 4px 0 var(--color-comic-black);
+}
+
+/* Halftone dot texture, used as a decorative background layer */
+.halftone {
+  background-image: radial-gradient(
+    var(--color-comic-black) 1.1px,
+    transparent 1.1px
+  );
+  background-size: 10px 10px;
+}
+
+.halftone-red {
+  background-image: radial-gradient(
+    var(--color-comic-red) 1.4px,
+    transparent 1.4px
+  );
+  background-size: 12px 12px;
+}
+
+/* Speech-bubble shape with a small tail */
+.speech-bubble {
+  position: relative;
+  border: 3px solid var(--color-comic-black);
+  border-radius: 1.25rem;
+  background: var(--color-white);
+}
+
+.speech-bubble::after {
+  content: "";
+  position: absolute;
+  left: 2rem;
+  bottom: -1.1rem;
+  width: 0;
+  height: 0;
+  border-left: 0.9rem solid transparent;
+  border-right: 0.9rem solid transparent;
+  border-top: 1.2rem solid var(--color-comic-black);
+}
+
+.speech-bubble::before {
+  content: "";
+  position: absolute;
+  left: calc(2rem + 3px);
+  bottom: -0.78rem;
+  width: 0;
+  height: 0;
+  border-left: 0.75rem solid transparent;
+  border-right: 0.75rem solid transparent;
+  border-top: 1rem solid var(--color-white);
+  z-index: 1;
+}
+
+.text-outline {
+  -webkit-text-stroke: 2px var(--color-comic-black);
+  paint-order: stroke fill;
+}
+
+.bg-grain {
+  background-image: radial-gradient(
+    rgba(17, 17, 17, 0.035) 1px,
+    transparent 1px
+  );
+  background-size: 4px 4px;
+}
+
+::selection {
+  background: var(--color-golden-orange);
+  color: var(--color-comic-black);
 }
