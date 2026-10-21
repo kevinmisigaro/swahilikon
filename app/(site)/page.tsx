@@ -56,7 +56,7 @@ const pillars = [
   "GAMING",
   "ARTIST ALLEY",
   "FANZONE",
-  "REFERRAL PILOT",
+  "INFLUENCER DISCOUNTS",
   "MASTERCLASSES",
 ];
 
@@ -98,8 +98,8 @@ export default async function HomePage() {
             {upcomingEvent.venue}.
           </p>
           <div className="mt-8 flex flex-wrap gap-4">
-            <ComicButton href="/referral" variant="red" disabled={DEMO_HOMEPAGE_ONLY}>
-              Enter Referral Code
+            <ComicButton href="/tickets" variant="red" disabled={DEMO_HOMEPAGE_ONLY}>
+              Get Tickets
             </ComicButton>
             <ComicButton
               href={`/events/${upcomingEvent.slug}`}
@@ -205,17 +205,17 @@ export default async function HomePage() {
               <Ticket size={22} />
             </span>
             <p className="font-sans text-base font-semibold text-comic-black">
-              Got an influencer referral code for {upcomingEvent.title}? Redeem
-              it to confirm your spot — no payment needed.
+              Got an influencer referral code for {upcomingEvent.title}? Add
+              it at checkout for 10% off your ticket.
             </p>
           </div>
           <ComicButton
-            href="/referral"
+            href="/tickets"
             variant="black"
             className="shrink-0"
             disabled={DEMO_HOMEPAGE_ONLY}
           >
-            Redeem now <ArrowRight size={18} />
+            Get Tickets <ArrowRight size={18} />
           </ComicButton>
         </div>
       </section>
@@ -265,9 +265,9 @@ export default async function HomePage() {
       {/* Access tiers */}
       <section className="border-y-4 border-comic-black bg-warm-white px-4 py-20 sm:px-6">
         <div className="mx-auto max-w-6xl">
-          <SectionHeading eyebrow="No tickets here" title="Three ways in — all free" align="center" />
+          <SectionHeading eyebrow="How to join" title="Three ways in" align="center" />
           <p className="mx-auto mt-3 max-w-xl text-center text-comic-black/70">
-            SKC doesn&apos;t sell tickets. Here&apos;s how fans actually get in.
+            One paid ticket, two free community passes — here&apos;s how fans get in.
           </p>
           <div className="mt-10 grid gap-8 sm:grid-cols-3">
             <TierBlock
@@ -281,11 +281,11 @@ export default async function HomePage() {
             />
             <TierBlock
               color="blue"
-              label="CODE"
-              title="Referral Code"
-              description="Got a code from an influencer? Redeem it to confirm your spot — no payment needed."
-              href="/referral"
-              cta="Redeem now"
+              label="TICKET"
+              title="Get Tickets"
+              description="Buy your ticket online. Have a code from an influencer? Add it for 10% off."
+              href="/tickets"
+              cta="Get tickets"
               disabled={DEMO_HOMEPAGE_ONLY}
             />
             <TierBlock

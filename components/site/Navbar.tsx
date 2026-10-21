@@ -13,7 +13,7 @@ const links = [
   { href: "/explore", label: "Explore" },
   { href: "/quest", label: "Quest" },
   { href: "/past-events", label: "Past Events" },
-  { href: "/referral", label: "Referral Code" },
+  { href: "/tickets", label: "Get Tickets" },
   { href: "/my-skc", label: "My SKC" },
 ];
 

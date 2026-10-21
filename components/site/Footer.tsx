@@ -14,7 +14,7 @@ const columns = [
   {
     title: "Get involved",
     links: [
-      { href: "/referral", label: "Referral Code" },
+      { href: "/tickets", label: "Get Tickets" },
       { href: "/my-skc", label: "My SKC / Fan Pass" },
       { href: "/masterclasses", label: "Masterclasses" },
       { href: "/competitions", label: "Competitions" },

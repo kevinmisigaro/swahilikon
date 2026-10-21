@@ -12,9 +12,10 @@ Both apps share one Supabase project.
 
 - Home, Events, Explore, Competitions, Masterclasses, FanZone, Past Events
   (2 August 2026 photo archive).
-- Referral Code redemption (the P0 feature): a visitor enters a code, the
-  backend confirms and redeems it exactly once, and Resend sends a
-  confirmation email.
+- Ticket purchase with an optional referral code: a visitor starts a ticket
+  order, optionally adding an influencer's referral code for 10% off (the
+  influencer earns a 10% commission), and Resend sends an order
+  confirmation before the buyer is sent to the external ticket link to pay.
 - My SKC: free Fan Pass + Quest progress (no payment required), plus an
   optional free account with one of the PRD §4 member roles (Fan, Parent/
   Guardian, Creator, Competitor, Vendor, Instructor, Influencer).
@@ -33,13 +34,17 @@ If you haven't already run it for `skc-admin`, apply the schema:
 
 1. Create a project at [supabase.com](https://supabase.com).
 2. In the SQL Editor, run `supabase/migrations/0001_init.sql`, then
-   `supabase/migrations/0002_profiles_and_quest.sql`, in that order. The
-   first creates core tables, RLS policies, and the `redeem_referral_code`
-   function that makes code redemption atomic. The second adds member
+   `supabase/migrations/0002_profiles_and_quest.sql`, then
+   `supabase/migrations/0003_ticket_purchases.sql`, in that order. The
+   first creates core tables and RLS policies. The second adds member
    `profiles` plus the `quest_checkpoints` / `quest_completions` /
    `quest_redemptions` tables and the `approve_quest_checkpoint` /
    `redeem_quest_reward` / `link_fan_pass_to_profile` RPCs that keep Quest
-   verification exactly-once and staff-authorized. These are the same
+   verification exactly-once and staff-authorized. The third adds
+   `events.price_cents`/`currency`, makes referral codes reusable discount
+   codes (`discount_percent`/`commission_percent`), renames `redemptions` to
+   `ticket_orders`, and replaces `redeem_referral_code` with
+   `create_ticket_order` (referral code now optional). These are the same
    migrations as in `skc-admin` — only run them once per Supabase project.
 3. Copy **Project Settings → API** into `.env.local` (copy `.env.example`
    first):
@@ -89,32 +94,99 @@ app/
     my-skc/             Free account, profile setup/dashboard, Fan Pass panel
     staff/quest/        Staff-only Quest verification console
   api/
-    referral/redeem/    Public redemption endpoint (calls the Postgres RPC)
+    tickets/purchase/   Public ticket-order endpoint (calls the Postgres RPC)
+    payments/dpo/        DPO webhook (callback) + return-page status check (verify)
     profile/            Signed-in member's own profile (get/create/update)
     quest/               Public checkpoints, guest pass create/lookup, pass-linking
     staff/quest/         Staff-authorized approve/redeem/summary endpoints
 components/
   ui/                 Shared comic-styled primitives (buttons, badges, headings)
   site/               Public-site components (AuthPanel, ProfileSetupForm/Dashboard,
-                      FanPassPanel, StaffQuestConsole, ...)
+                      FanPassPanel, StaffQuestConsole, TicketForm, TicketConfirmStatus, ...)
 lib/
-  supabase/            Browser / server Supabase clients (anon key only — no service role here)
+  supabase/            Browser / server Supabase clients (anon key) + service.ts (service
+                      role, payment writes only — see "How ticket payment works" below)
+  payments/            DPO Pay API client + payment-status sync helper
   data/                Server-only data-fetching helpers
   email/               Resend integration
-supabase/migrations/   SQL schema, RLS policies, the atomic redemption function
+supabase/migrations/   SQL schema, RLS policies, the create_ticket_order RPC
 public/images/          Curated photos from the 2 August 2026 event
 ```
 
-## How redemption stays "exactly once"
+## How ticket orders work
 
-`redeem_referral_code` (see the migration) does three things in a single
-Postgres function call: locks the matching code row (`FOR UPDATE`), flips
-its status from `available` to `used` only if it's still `available`, and
-inserts the redemption row — which has a `UNIQUE` constraint on
-`referral_code_id`. A concurrent second request either blocks on the lock
-and then finds the code no longer `available`, or loses the unique-index
-race on insert. Either way it gets a clean rejection instead of a duplicate
-redemption or duplicate confirmation email.
+`create_ticket_order` (see `0003_ticket_purchases.sql`) takes the buyer's
+name/email and an **optional** referral code. With no code, the order is
+full price. With a valid code, it computes a 10% discount for the buyer and
+a 10% commission for the referring influencer (both percentages live on
+`referral_codes` and can be tuned per code). Unlike the old single-use
+`redeem_referral_code` RPC, a referral code is not consumed — the same code
+can be used by many buyers, since it is now a discount/commission code
+rather than a one-time invite.
+
+## How ticket payment works (DPO Pay)
+
+`app/api/tickets/purchase` decides how the buyer pays, in this order:
+
+1. **Fully discounted order** (`total_cents` is 0) — nothing to pay; the
+   order is marked `paid` immediately.
+2. **DPO configured** (`DPO_COMPANY_TOKEN` + `DPO_SERVICE_TYPE` set) —
+   `createPaymentToken` (`lib/payments/dpo.ts`) opens a DPO transaction for
+   the order total and returns a hosted-checkout URL
+   (`https://secure.3gdirectpay.com/pay.asp?ID={token}`), which the buyer is
+   sent to from the success panel / confirmation email.
+3. **DPO not configured** — falls back to the event's external `ticket_url`,
+   same as before DPO existed. Nothing breaks if you add DPO credentials
+   later; purchases just start getting routed through DPO's checkout once
+   both env vars are set.
+
+Payment status then gets confirmed two ways, both re-verifying with DPO's
+`verifyToken` rather than trusting a claimed status (DPO's push payload
+isn't signed):
+
+- **Webhook** (`app/api/payments/dpo/callback`) — DPO calls this
+  server-to-server (the `BackURL` on the transaction) once the buyer pays.
+- **Return page** (`/tickets/confirm`, the transaction's `RedirectURL`) —
+  the buyer's browser lands here after paying; `app/api/payments/dpo/verify`
+  re-checks with DPO if the webhook hasn't landed yet, so the page doesn't
+  just show stale "pending" state.
+
+Both paths write through `lib/supabase/service.ts` (the Supabase
+**service role** key, bypassing RLS) rather than a public RPC — a
+SECURITY DEFINER function grantable to `anon` would let anyone mark an
+arbitrary order "paid" by guessing/observing its id. Payment writes are the
+one place in this app that need a trusted, server-only credential; don't
+use `createServiceClient()` anywhere else. Without
+`SUPABASE_SERVICE_ROLE_KEY` set, ticket purchases still work — orders just
+stay `pending` since there's nowhere to persist the DPO token or the
+verified status.
+
+## Tanzania mobile money (M-Pesa, Airtel Money, HaloPesa, Mixx by Yas)
+
+When an order's currency is TZS and a DPO token was created, the success
+panel also offers a native "pay with mobile money" form (network + phone
+number) instead of sending the buyer to DPO's hosted page. Submitting it
+calls `app/api/payments/dpo/charge-mobile`, which uses
+`chargeMobileMoney` (`lib/payments/dpo.ts`, DPO's `ChargeTokenMobile`) to
+push a PIN prompt straight to the buyer's phone, then sends them to
+`/tickets/confirm` to watch for the real outcome the same way a card
+payment does.
+
+The four MNO codes this maps to (`TANZANIA_MNO_CODES` in `lib/payments/dpo.ts`)
+were captured from a **live** sandbox `CompanyMobilePaymentOptions` /
+`ChargeTokenMobile` call against a Tanzania-enabled DPO test account, not
+from DPO's public docs (their response schema for this endpoint isn't
+published) — three are a direct match (`TIGOdebitMandate` for Mixx by Yas,
+`Selcom_webPay_Airtel` for Airtel Money, `Selcom_webPay_Halotel` for
+HaloPesa); **M-Pesa is an inference** (`Selcom_webPay`, the one unsuffixed
+entry in a response where every other Tanzania network had a named suffix —
+DPO never labels it "Vodacom" or "Mpesa"). Confirm that one with DPO support
+before relying on it for real payments, and correct it via `DPO_MNO_MPESA`
+if it's wrong. A successful push also comes back in an undocumented shape —
+`<StatusCode>130</StatusCode>` rather than the `<Result>000</Result>` every
+other DPO v6 call uses — which is why `chargeMobileMoney` checks for
+`StatusCode` specifically rather than reusing the `Result` parsing the rest
+of this module shares.
 
 ## Design tokens
 

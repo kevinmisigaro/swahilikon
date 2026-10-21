@@ -7,6 +7,7 @@
 export type InfluencerStatus = "active" | "inactive";
 export type ReferralCodeStatus = "available" | "used" | "disabled";
 export type EmailStatus = "pending" | "sent" | "failed";
+export type PaymentStatus = "pending" | "paid" | "failed" | "cancelled";
 export type EventStatus = "upcoming" | "past";
 export type AdminRole = "platform_admin" | "event_manager" | "moderator" | "quest_staff";
 export type MemberRole =
@@ -47,6 +48,8 @@ export interface Database {
           code: string;
           influencer_id: string;
           status: ReferralCodeStatus;
+          discount_percent: number;
+          commission_percent: number;
           created_at: string;
           created_by: string | null;
         };
@@ -55,6 +58,8 @@ export interface Database {
           code: string;
           influencer_id: string;
           status?: ReferralCodeStatus;
+          discount_percent?: number;
+          commission_percent?: number;
           created_at?: string;
           created_by?: string | null;
         };
@@ -69,32 +74,61 @@ export interface Database {
           },
         ];
       };
-      redemptions: {
+      ticket_orders: {
         Row: {
           id: string;
-          referral_code_id: string;
-          visitor_name: string;
-          visitor_email: string;
+          event_id: string;
+          referral_code_id: string | null;
+          buyer_name: string;
+          buyer_email: string;
+          unit_price_cents: number;
+          discount_cents: number;
+          commission_cents: number;
+          total_cents: number;
+          currency: string;
           confirmation_ref: string;
           email_status: EmailStatus;
-          redeemed_at: string;
+          payment_provider: string;
+          payment_token: string | null;
+          payment_ref: string | null;
+          payment_status: PaymentStatus;
+          paid_at: string | null;
+          created_at: string;
         };
         Insert: {
           id?: string;
-          referral_code_id: string;
-          visitor_name: string;
-          visitor_email: string;
+          event_id: string;
+          referral_code_id?: string | null;
+          buyer_name: string;
+          buyer_email: string;
+          unit_price_cents?: number;
+          discount_cents?: number;
+          commission_cents?: number;
+          total_cents?: number;
+          currency?: string;
           confirmation_ref?: string;
           email_status?: EmailStatus;
-          redeemed_at?: string;
+          payment_provider?: string;
+          payment_token?: string | null;
+          payment_ref?: string | null;
+          payment_status?: PaymentStatus;
+          paid_at?: string | null;
+          created_at?: string;
         };
-        Update: Partial<Database["public"]["Tables"]["redemptions"]["Insert"]>;
+        Update: Partial<Database["public"]["Tables"]["ticket_orders"]["Insert"]>;
         Relationships: [
           {
-            foreignKeyName: "redemptions_referral_code_id_fkey";
+            foreignKeyName: "ticket_orders_referral_code_id_fkey";
             columns: ["referral_code_id"];
-            isOneToOne: true;
+            isOneToOne: false;
             referencedRelation: "referral_codes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ticket_orders_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "events";
             referencedColumns: ["id"];
           },
         ];
@@ -109,6 +143,8 @@ export interface Database {
           venue: string;
           schedule: unknown;
           ticket_url: string | null;
+          price_cents: number;
+          currency: string;
           status: EventStatus;
           is_published: boolean;
           cover_image: string | null;
@@ -123,6 +159,8 @@ export interface Database {
           venue: string;
           schedule?: unknown;
           ticket_url?: string | null;
+          price_cents?: number;
+          currency?: string;
           status?: EventStatus;
           is_published?: boolean;
           cover_image?: string | null;
@@ -296,16 +334,25 @@ export interface Database {
     };
     Views: Record<string, never>;
     Functions: {
-      redeem_referral_code: {
-        Args: { p_code: string; p_visitor_name: string; p_visitor_email: string };
+      create_ticket_order: {
+        Args: {
+          p_event_slug: string;
+          p_buyer_name: string;
+          p_buyer_email: string;
+          p_code?: string | null;
+        };
         Returns: {
-          redemption_id: string;
+          order_id: string;
           confirmation_ref: string;
-          influencer_name: string;
+          influencer_name: string | null;
+          unit_price_cents: number;
+          discount_cents: number;
+          total_cents: number;
+          currency: string;
         }[];
       };
-      mark_redemption_email_status: {
-        Args: { p_redemption_id: string; p_status: EmailStatus };
+      mark_ticket_order_email_status: {
+        Args: { p_order_id: string; p_status: EmailStatus };
         Returns: void;
       };
       get_fan_pass: {

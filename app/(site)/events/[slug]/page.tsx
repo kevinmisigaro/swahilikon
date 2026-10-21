@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MapPin, Calendar, ExternalLink, ArrowLeft } from "lucide-react";
+import { MapPin, Calendar, ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { ComicButton } from "@/components/ui/ComicButton";
-import { formatEventDate } from "@/lib/utils";
+import { formatEventDate, formatMoney } from "@/lib/utils";
 import { getEventBySlug } from "@/lib/data/events";
 
 export async function generateMetadata({
@@ -77,19 +77,15 @@ export default async function EventDetailPage({
 
           {event.status === "upcoming" && (
             <div className="space-y-3 pt-2">
-              <ComicButton href="/referral" variant="red" className="w-full">
-                Enter Referral Code
+              <p className="text-center font-display text-2xl text-comic-black">
+                {formatMoney(event.price_cents, event.currency)}
+              </p>
+              <ComicButton href="/tickets" variant="red" className="w-full">
+                Get Tickets
               </ComicButton>
-              {event.ticket_url && (
-                <a
-                  href={event.ticket_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 text-sm font-bold text-comic-red hover:underline"
-                >
-                  Official tickets <ExternalLink size={14} />
-                </a>
-              )}
+              <p className="text-center text-xs text-comic-black/60">
+                Have a referral code? Add it at checkout for 10% off.
+              </p>
             </div>
           )}
           {event.status === "past" && (

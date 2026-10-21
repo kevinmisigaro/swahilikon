@@ -1,28 +1,28 @@
 import type { Metadata } from "next";
 import { Badge } from "@/components/ui/Badge";
-import { ReferralForm } from "@/components/site/ReferralForm";
-import { formatEventDate } from "@/lib/utils";
+import { TicketForm } from "@/components/site/TicketForm";
+import { formatEventDate, formatMoney } from "@/lib/utils";
 import { getUpcomingEvent } from "@/lib/data/events";
 
-export const metadata: Metadata = { title: "Referral Code" };
+export const metadata: Metadata = { title: "Get Tickets" };
 
-export default async function ReferralPage() {
+export default async function TicketsPage() {
   const event = await getUpcomingEvent();
 
   return (
     <div className="mx-auto max-w-xl px-4 py-16 sm:px-6">
       <div className="text-center">
         <Badge tone="upcoming">{event.title} · {formatEventDate(event.event_date)}</Badge>
-        <h1 className="font-display mt-3 text-5xl text-comic-black">Referral Code</h1>
+        <h1 className="font-display mt-3 text-5xl text-comic-black">Get Your Ticket</h1>
         <p className="mx-auto mt-4 max-w-md text-comic-black/70">
-          Got a code from an SKC influencer? Enter it below to confirm your
-          spot at {event.venue}. This is registration, not a ticket purchase —
-          no payment is collected.
+          {formatMoney(event.price_cents, event.currency)} gets you into{" "}
+          {event.title} at {event.venue}. Got a code from an SKC influencer?
+          Add it below for 10% off.
         </p>
       </div>
 
       <div className="mt-10">
-        <ReferralForm />
+        <TicketForm />
       </div>
     </div>
   );
