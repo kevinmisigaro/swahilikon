@@ -11,6 +11,7 @@ const links = [
   { href: "/", label: "Home" },
   { href: "/events", label: "Events" },
   { href: "/explore", label: "Explore" },
+  { href: "/quest", label: "Quest" },
   { href: "/past-events", label: "Past Events" },
   { href: "/referral", label: "Referral Code" },
   { href: "/my-skc", label: "My SKC" },

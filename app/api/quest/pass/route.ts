@@ -8,7 +8,7 @@ const createSchema = z.object({
 });
 
 const SERVICE_UNAVAILABLE =
-  "Fan Passes aren't available right now — the site owner needs to finish connecting Supabase. Please try again shortly.";
+  "Quest Passes aren't available right now — the site owner needs to finish connecting Supabase. Please try again shortly.";
 
 export async function POST(request: Request) {
   let body: unknown;
@@ -39,14 +39,14 @@ export async function POST(request: Request) {
 
     if (error || !data) {
       return NextResponse.json(
-        { error: "We couldn't create your Fan Pass. Please try again." },
+        { error: "We couldn't create your Quest pass. Please try again." },
         { status: 500 },
       );
     }
 
-    return NextResponse.json(data);
+    return NextResponse.json({ ...data, completed_checkpoints: [], redeemed: false });
   } catch (err) {
-    console.error("[fan-pass] unexpected error", err);
+    console.error("[quest/pass] unexpected error", err);
     return NextResponse.json({ error: SERVICE_UNAVAILABLE }, { status: 503 });
   }
 }
@@ -59,18 +59,18 @@ export async function GET(request: Request) {
 
   try {
     const supabase = await createClient();
-    const { data, error } = await supabase.rpc("get_fan_pass", {
+    const { data, error } = await supabase.rpc("get_quest_status", {
       p_pass_code: code,
     });
 
-    const pass = Array.isArray(data) ? data[0] : null;
-    if (error || !pass) {
-      return NextResponse.json({ error: "Fan Pass not found." }, { status: 404 });
+    const status = Array.isArray(data) ? data[0] : null;
+    if (error || !status) {
+      return NextResponse.json({ error: "Quest pass not found." }, { status: 404 });
     }
 
-    return NextResponse.json(pass);
+    return NextResponse.json(status);
   } catch (err) {
-    console.error("[fan-pass] unexpected error", err);
+    console.error("[quest/pass] unexpected error", err);
     return NextResponse.json({ error: SERVICE_UNAVAILABLE }, { status: 503 });
   }
 }

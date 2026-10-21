@@ -15,7 +15,12 @@ Both apps share one Supabase project.
 - Referral Code redemption (the P0 feature): a visitor enters a code, the
   backend confirms and redeems it exactly once, and Resend sends a
   confirmation email.
-- My SKC: free Fan Pass, no payment or account required.
+- My SKC: free Fan Pass + Quest progress (no payment required), plus an
+  optional free account with one of the PRD §4 member roles (Fan, Parent/
+  Guardian, Creator, Competitor, Vendor, Instructor, Influencer).
+- SKC Quest (PRD §6): public checkpoint list, a guest Fan Pass that earns XP
+  as stations are completed, and a staff console that verifies completions
+  server-side so XP can only ever be awarded once per pass/checkpoint.
 
 ## Stack
 
@@ -27,11 +32,15 @@ Security) · Resend (confirmation emails) · Tailwind CSS v4.
 If you haven't already run it for `skc-admin`, apply the schema:
 
 1. Create a project at [supabase.com](https://supabase.com).
-2. In the SQL Editor, run `supabase/migrations/0001_init.sql`. This creates
-   every table, the RLS policies, and the `redeem_referral_code` function
-   that makes code redemption atomic (so two people can never redeem the
-   same code at once). It's the same migration as in `skc-admin` — only run
-   it once per Supabase project.
+2. In the SQL Editor, run `supabase/migrations/0001_init.sql`, then
+   `supabase/migrations/0002_profiles_and_quest.sql`, in that order. The
+   first creates core tables, RLS policies, and the `redeem_referral_code`
+   function that makes code redemption atomic. The second adds member
+   `profiles` plus the `quest_checkpoints` / `quest_completions` /
+   `quest_redemptions` tables and the `approve_quest_checkpoint` /
+   `redeem_quest_reward` / `link_fan_pass_to_profile` RPCs that keep Quest
+   verification exactly-once and staff-authorized. These are the same
+   migrations as in `skc-admin` — only run them once per Supabase project.
 3. Copy **Project Settings → API** into `.env.local` (copy `.env.example`
    first):
 
@@ -76,12 +85,18 @@ immediately — see `lib/data/events.ts`.
 ```
 app/
   (site)/            Every public page — wrapped in the Navbar/Footer layout
+    quest/             Public Quest rules + checkpoint list + Fan Pass panel
+    my-skc/             Free account, profile setup/dashboard, Fan Pass panel
+    staff/quest/        Staff-only Quest verification console
   api/
-    referral/redeem/   Public redemption endpoint (calls the Postgres RPC)
-    fan-pass/          Free Fan Pass create/lookup
+    referral/redeem/    Public redemption endpoint (calls the Postgres RPC)
+    profile/            Signed-in member's own profile (get/create/update)
+    quest/               Public checkpoints, guest pass create/lookup, pass-linking
+    staff/quest/         Staff-authorized approve/redeem/summary endpoints
 components/
   ui/                 Shared comic-styled primitives (buttons, badges, headings)
-  site/               Public-site components
+  site/               Public-site components (AuthPanel, ProfileSetupForm/Dashboard,
+                      FanPassPanel, StaffQuestConsole, ...)
 lib/
   supabase/            Browser / server Supabase clients (anon key only — no service role here)
   data/                Server-only data-fetching helpers
@@ -117,11 +132,29 @@ Defined in `app/globals.css` under `@theme inline`, exposed as Tailwind
 utilities (`bg-comic-red`, `text-sky-blue`, …). `skc-admin` uses the same
 tokens for a consistent look.
 
+## How SKC Quest verification stays "exactly once"
+
+`approve_quest_checkpoint` mirrors the redemption pattern: it locks the
+Fan Pass row, checks the caller is an authenticated admin assigned to that
+checkpoint (`is_assigned_to_checkpoint`), and relies on the
+`unique (fan_pass_id, checkpoint_id)` constraint on `quest_completions`. A
+repeat scan returns `ALREADY_COMPLETED` without awarding XP again. The
+Fan Pass QR code only encodes the opaque `pass_code` — it is a lookup
+reference for staff, never proof of completion by itself.
+
+**Staff console note:** `/staff/quest` lives in this app for pilot
+convenience and only renders staff tools after confirming the signed-in
+user has an `admin_profiles` row (checked server-side; RLS and the RPCs
+above enforce this independently of the UI). The `skc-admin` app remains
+the source of truth for admin account creation and other staff tooling —
+consider moving this console there if/when stricter origin isolation
+between public and staff sessions is required.
+
 ## What's deliberately out of scope (per the PRD)
 
-No ticket payment/checkout, no native mobile app, no Shop checkout. The
-Quest (five-checkpoint scavenger pilot) is modeled in the schema notes but
-not built in this pass — it's explicitly secondary to the referral-code
-system in the PRD and should follow once the pilot is stable. Creator
-directory, competitions and masterclasses ship as informational pages for
-now, ready to wire up to real content tables in P1.
+No ticket payment/checkout, no native mobile app, no Shop checkout (§9) and
+no Masterclasses booking/LMS (§10) — both remain informational-only per the
+user's request. Creator directory and competitions ship as informational
+pages for now, ready to wire up to real content tables in P1. Native
+ticketing, automated influencer payouts and FanZone posting remain gated
+behind later phases per the PRD's go/no-go gates.

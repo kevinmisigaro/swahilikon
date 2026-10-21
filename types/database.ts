@@ -9,6 +9,14 @@ export type ReferralCodeStatus = "available" | "used" | "disabled";
 export type EmailStatus = "pending" | "sent" | "failed";
 export type EventStatus = "upcoming" | "past";
 export type AdminRole = "platform_admin" | "event_manager" | "moderator" | "quest_staff";
+export type MemberRole =
+  | "fan"
+  | "parent_guardian"
+  | "creator"
+  | "competitor"
+  | "vendor"
+  | "instructor"
+  | "influencer";
 
 export interface Database {
   public: {
@@ -131,6 +139,8 @@ export interface Database {
           holder_email: string | null;
           xp: number;
           badge: string | null;
+          profile_id: string | null;
+          linked_at: string | null;
           created_at: string;
         };
         Insert: {
@@ -140,9 +150,113 @@ export interface Database {
           holder_email?: string | null;
           xp?: number;
           badge?: string | null;
+          profile_id?: string | null;
+          linked_at?: string | null;
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["fan_passes"]["Insert"]>;
+        Relationships: [];
+      };
+      profiles: {
+        Row: {
+          id: string;
+          display_name: string;
+          role: MemberRole;
+          bio: string | null;
+          interests: string[];
+          details: Record<string, unknown>;
+          marketing_opt_in: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          display_name: string;
+          role?: MemberRole;
+          bio?: string | null;
+          interests?: string[];
+          details?: Record<string, unknown>;
+          marketing_opt_in?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
+        Relationships: [];
+      };
+      quest_checkpoints: {
+        Row: {
+          id: string;
+          code: string;
+          title: string;
+          mission_text: string;
+          xp: number;
+          sort_order: number;
+          is_active: boolean;
+          opens_at: string | null;
+          closes_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          code: string;
+          title: string;
+          mission_text: string;
+          xp?: number;
+          sort_order?: number;
+          is_active?: boolean;
+          opens_at?: string | null;
+          closes_at?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["quest_checkpoints"]["Insert"]>;
+        Relationships: [];
+      };
+      staff_checkpoint_assignments: {
+        Row: {
+          admin_profile_id: string;
+          checkpoint_id: string;
+          created_at: string;
+        };
+        Insert: {
+          admin_profile_id: string;
+          checkpoint_id: string;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["staff_checkpoint_assignments"]["Insert"]>;
+        Relationships: [];
+      };
+      quest_completions: {
+        Row: {
+          id: string;
+          fan_pass_id: string;
+          checkpoint_id: string;
+          approved_by: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          fan_pass_id: string;
+          checkpoint_id: string;
+          approved_by: string;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["quest_completions"]["Insert"]>;
+        Relationships: [];
+      };
+      quest_redemptions: {
+        Row: {
+          id: string;
+          fan_pass_id: string;
+          redeemed_by: string;
+          redeemed_at: string;
+        };
+        Insert: {
+          id?: string;
+          fan_pass_id: string;
+          redeemed_by: string;
+          redeemed_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["quest_redemptions"]["Insert"]>;
         Relationships: [];
       };
       admin_profiles: {
@@ -202,6 +316,39 @@ export interface Database {
           xp: number;
           badge: string | null;
           created_at: string;
+        }[];
+      };
+      get_quest_status: {
+        Args: { p_pass_code: string };
+        Returns: {
+          pass_code: string;
+          holder_name: string;
+          xp: number;
+          badge: string | null;
+          completed_checkpoints: string[];
+          redeemed: boolean;
+        }[];
+      };
+      approve_quest_checkpoint: {
+        Args: { p_pass_code: string; p_checkpoint_code: string };
+        Returns: { status: string; xp: number; badge: string | null }[];
+      };
+      redeem_quest_reward: {
+        Args: { p_pass_code: string };
+        Returns: { status: string }[];
+      };
+      link_fan_pass_to_profile: {
+        Args: { p_pass_code: string };
+        Returns: { status: string }[];
+      };
+      quest_staff_summary: {
+        Args: Record<string, never>;
+        Returns: {
+          passes_issued: number;
+          completions_total: number;
+          finishers: number;
+          badges_awarded: number;
+          redemptions: number;
         }[];
       };
     };
