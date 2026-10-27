@@ -1,53 +1,32 @@
 import Image from "next/image";
 import Link from "next/link";
-import {
-  Sparkles,
-  Gamepad2,
-  Palette,
-  Users,
-  Ticket,
-  ArrowRight,
-} from "lucide-react";
+import { ArrowRight, Ticket } from "lucide-react";
 import { ComicButton } from "@/components/ui/ComicButton";
-import { SectionHeading } from "@/components/ui/SectionHeading";
-import { Badge } from "@/components/ui/Badge";
-import { GalleryGrid } from "@/components/site/GalleryGrid";
-import { PhotoFeatureCard } from "@/components/site/PhotoFeatureCard";
 import { TierBlock } from "@/components/site/TierBlock";
 import { Countdown } from "@/components/site/Countdown";
-import { formatEventDate } from "@/lib/utils";
 import { getUpcomingEvent, getPastEvents } from "@/lib/data/events";
-import { SKC_AUG_2026_GALLERY } from "@/lib/data/gallery";
 import { DEMO_HOMEPAGE_ONLY } from "@/lib/demoMode";
 
 const highlights = [
   {
-    icon: Users,
     title: "Creators",
     copy: "Discover illustrators, animators, cosplayers and studios from across the region.",
     href: "/explore",
-    color: "bg-sky-blue",
   },
   {
-    icon: Palette,
     title: "Masterclasses",
     copy: "Hands-on workshops with working creators — topics and dates posted ahead of each event.",
     href: "/masterclasses",
-    color: "bg-golden-orange",
   },
   {
-    icon: Gamepad2,
     title: "Competitions",
     copy: "Cosplay, art and gaming competitions with clear rules, eligibility and entry windows.",
     href: "/competitions",
-    color: "bg-hero-green",
   },
   {
-    icon: Sparkles,
     title: "FanZone",
     copy: "A moderated community space for Anime & Manga, Gaming, Cosplay, Film and African Creators.",
     href: "/fanzone",
-    color: "bg-comic-red",
   },
 ];
 
@@ -60,142 +39,128 @@ const pillars = [
   "MASTERCLASSES",
 ];
 
+function shortDate(dateIso: string) {
+  return new Date(dateIso)
+    .toLocaleDateString("en-GB", {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      timeZone: "Africa/Dar_es_Salaam",
+    })
+    .replace(",", "");
+}
+
 export default async function HomePage() {
   const [upcomingEvent, pastEvents] = await Promise.all([
     getUpcomingEvent(),
     getPastEvents(),
   ]);
   const recapEvent = pastEvents[0];
+  const shortVenue = upcomingEvent.venue.split(",")[0]?.trim() ?? upcomingEvent.venue;
 
   return (
     <div>
       {/* Hero */}
-      <section className="relative overflow-hidden border-b-4 border-comic-black">
-        <div className="absolute inset-0">
-          <Image
-            src="/images/hero/skc-hero-main.jpg"
-            alt="Cosplayers on stage at Swahili Komik Con"
-            fill
-            priority
-            className="object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-comic-black via-comic-black/70 to-comic-black/20" />
-        </div>
+      <section className="skc-speed-lines relative border-b-4 border-comic-black px-4 py-8 md:py-14">
+        <div className="mx-auto max-w-6xl">
+          <div className="comic-panel relative overflow-hidden bg-comic-black">
+            <div className="relative h-[560px] w-full md:h-[640px]">
+              <Image
+                src="/images/hero/skc-hero-comic.jpg"
+                alt="Comic-style illustration of East African cosplayers, a gamer and a superhero over the Dar es Salaam skyline"
+                fill
+                priority
+                className="object-cover object-[60%_center]"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-comic-black/85 via-comic-black/40 to-transparent" />
+            </div>
 
-        <div className="relative mx-auto flex max-w-6xl flex-col items-start px-4 py-24 sm:px-6 sm:py-32">
-          <Badge tone="upcoming">Next event · {formatEventDate(upcomingEvent.event_date)}</Badge>
-          <h1 className="font-display mt-4 text-6xl leading-[0.95] text-white sm:text-8xl">
-            Your World of
-            <br />
-            <span className="text-action-orange">Comics</span>,{" "}
-            <span className="text-sky-blue">Gaming</span>,
-            <br />
-            Animation &amp; Cosplay
-          </h1>
-          <p className="mt-5 max-w-xl text-lg text-white/85">
-            Swahili Komik Con is the year-round home for East Africa&apos;s comic,
-            gaming, animation and cosplay community — online, and live at{" "}
-            {upcomingEvent.venue}.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-4">
-            <ComicButton href="/tickets" variant="red" disabled={DEMO_HOMEPAGE_ONLY}>
-              Get Tickets
-            </ComicButton>
-            <ComicButton
-              href={`/events/${upcomingEvent.slug}`}
-              variant="outline"
-              disabled={DEMO_HOMEPAGE_ONLY}
-            >
-              {upcomingEvent.title}
-            </ComicButton>
+            <div className="skc-caption absolute top-4 left-4 -rotate-2 bg-golden-orange px-3 py-1 text-lg text-comic-black md:top-8 md:left-8 md:text-2xl">
+              Issue #2 · {shortDate(upcomingEvent.event_date)} · {shortVenue}
+            </div>
+
+            <div className="skc-burst animate-skc-pop absolute top-14 -right-2 grid h-28 w-28 place-items-center bg-golden-orange text-center font-display text-comic-black md:top-8 md:right-8 md:h-40 md:w-40">
+              <span className="text-2xl md:text-4xl">KAPOW!</span>
+            </div>
+
+            <div className="absolute inset-x-4 bottom-6 md:inset-x-8 md:bottom-10 md:max-w-2xl">
+              <h1 className="text-outline font-display text-5xl text-white sm:text-6xl md:text-7xl">
+                Your world of <span className="text-comic-red">comics</span>,{" "}
+                <span className="text-sky-blue">gaming</span>,{" "}
+                <span className="text-hero-green">animation</span> &amp;{" "}
+                <span className="text-golden-orange">cosplay!</span>
+              </h1>
+              <p className="mt-4 inline-block -rotate-1 border-[3px] border-comic-black bg-white px-4 py-2 font-sans font-bold text-comic-black md:text-lg">
+                East Africa&apos;s home for the fandom — online, and live in {shortVenue}.
+              </p>
+              <div className="mt-5 flex flex-wrap gap-4">
+                <ComicButton href="/tickets" variant="red" disabled={DEMO_HOMEPAGE_ONLY}>
+                  Get Tickets!
+                </ComicButton>
+                <ComicButton href="/my-skc" variant="blue" disabled={DEMO_HOMEPAGE_ONLY}>
+                  Free Fan Pass
+                </ComicButton>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Recap */}
+      {/* Ticker */}
+      <div className="-rotate-1 border-y-4 border-comic-black bg-comic-black py-3 font-display text-2xl text-white md:text-3xl">
+        <div className="whitespace-nowrap text-center">{pillars.join(" ★ ")}</div>
+      </div>
+
+      {/* Previously on SKC */}
       {recapEvent && (
-        <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-          <div className="grid items-center gap-10 lg:grid-cols-[1fr_1.3fr]">
-            <div className="relative aspect-[4/5] overflow-hidden rounded-2xl border-4 border-golden-orange shadow-[6px_6px_0_var(--color-comic-black)]">
-              <Image
-                src={recapEvent.cover_image ?? SKC_AUG_2026_GALLERY[19]}
-                alt={recapEvent.title}
-                fill
-                className="object-cover"
-                sizes="(min-width: 1024px) 400px, 100vw"
-              />
-            </div>
-            <div>
-              <Badge tone="past">Last time</Badge>
-              <h2 className="font-display mt-3 text-4xl text-comic-black sm:text-5xl">
-                {recapEvent.title} was nothing short of legendary.
-              </h2>
-              <p className="mt-4 text-comic-black/75">{recapEvent.description}</p>
-              <p className="mt-3 text-comic-black/75">
-                From stunning cosplay to stage showdowns and creator moments,
-                every corner was packed with energy — a glimpse of what SKC
-                Reloaded / Tanzanite has in store.
+        <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+          <h2 className="font-display mb-8 text-5xl text-comic-black md:text-7xl">
+            Previously on SKC…
+          </h2>
+          <div className="grid gap-6 md:grid-cols-3">
+            <div className="halftone comic-panel bg-sky-blue p-6 md:col-span-2">
+              <p className="text-2xl font-bold text-comic-black">
+                {recapEvent.title} was nothing short of{" "}
+                <span className="font-display text-4xl text-comic-red">legendary.</span>{" "}
+                {recapEvent.description}
               </p>
-              {DEMO_HOMEPAGE_ONLY ? (
-                <span
-                  className="mt-5 inline-flex items-center gap-1 font-display text-lg text-comic-red/40"
-                  aria-disabled="true"
-                >
-                  Relive the gallery <ArrowRight size={18} />
-                </span>
-              ) : (
-                <Link
-                  href="/past-events"
-                  className="mt-5 inline-flex items-center gap-1 font-display text-lg text-comic-red hover:underline"
-                >
-                  Relive the gallery <ArrowRight size={18} />
-                </Link>
-              )}
             </div>
+            <div className="comic-panel -rotate-1 bg-golden-orange p-6 text-comic-black">
+              <h3 className="font-display text-3xl">Cosplay Unleashed</h3>
+              <p className="mt-2 font-bold">Craft, performance, accuracy</p>
+            </div>
+            <div className="comic-panel rotate-1 bg-comic-red p-6 text-white">
+              <h3 className="font-display text-3xl">Center Stage</h3>
+              <p className="mt-2 font-bold">Showdowns &amp; performances</p>
+            </div>
+            <div className="comic-panel -rotate-1 bg-hero-green p-6 text-white">
+              <h3 className="font-display text-3xl">Creators Celebrated</h3>
+              <p className="mt-2 font-bold">Recognition that matters</p>
+            </div>
+            {DEMO_HOMEPAGE_ONLY ? (
+              <div className="comic-panel rotate-1 bg-white p-6 opacity-50" aria-disabled="true">
+                <h3 className="font-display text-3xl text-comic-red/40">
+                  Relive the gallery →
+                </h3>
+                <p className="mt-2 font-bold text-comic-black/40">
+                  Every corner packed with energy
+                </p>
+              </div>
+            ) : (
+              <Link
+                href="/past-events"
+                className="comic-panel motion-safe-wiggle rotate-1 block bg-white p-6 transition-transform duration-150"
+              >
+                <h3 className="font-display text-3xl text-comic-red">Relive the gallery →</h3>
+                <p className="mt-2 font-bold text-comic-black">
+                  Every corner packed with energy
+                </p>
+              </Link>
+            )}
           </div>
         </section>
       )}
-
-      {/* Feature photo grid */}
-      <section className="halftone border-y-4 border-comic-black bg-comic-black px-4 py-20 sm:px-6">
-        <div className="mx-auto max-w-6xl">
-          <SectionHeading
-            eyebrow="The energy"
-            title="This is what SKC feels like"
-            align="center"
-            className="[&_h2]:text-white [&_p]:bg-golden-orange [&_p]:text-comic-black"
-          />
-          <div className="mt-10 grid gap-6 sm:grid-cols-3">
-            <PhotoFeatureCard
-              image={SKC_AUG_2026_GALLERY[4]}
-              title="Cosplay Unleashed"
-              subtitle="Craft, performance, accuracy"
-              color="red"
-            />
-            <PhotoFeatureCard
-              image={SKC_AUG_2026_GALLERY[9]}
-              title="Center Stage"
-              subtitle="Showdowns & performances"
-              color="blue"
-            />
-            <PhotoFeatureCard
-              image={SKC_AUG_2026_GALLERY[24]}
-              title="Creators Celebrated"
-              subtitle="Recognition that matters"
-              color="green"
-            />
-          </div>
-
-          <div className="mt-14 text-center">
-            <h3 className="font-display text-3xl text-white sm:text-4xl">
-              One Day of Fandom, Gaming &amp; Cosplay
-            </h3>
-            <p className="mt-3 text-sm font-bold tracking-[0.15em] text-white/70 uppercase">
-              {pillars.join(" · ")}
-            </p>
-          </div>
-        </div>
-      </section>
 
       {/* Referral strip */}
       <section className="halftone border-b-4 border-comic-black bg-golden-orange/15">
@@ -220,102 +185,100 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Highlights */}
-      <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-        <SectionHeading eyebrow="Explore SKC" title="Built for the whole fandom" align="center" />
-        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {highlights.map(({ icon: Icon, title, copy, href, color }) => {
-            const cardContent = (
-              <>
-                <span
-                  className={`comic-panel-sm flex h-12 w-12 items-center justify-center rounded-full ${color} text-white`}
-                >
-                  <Icon size={22} />
-                </span>
-                <h3 className="font-display text-2xl text-comic-black">{title}</h3>
-                <p className="text-sm text-comic-black/70">{copy}</p>
-              </>
-            );
+      {/* Built for the whole fandom */}
+      <section className="halftone border-y-4 border-comic-black bg-golden-orange py-16">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <h2 className="font-display mb-8 text-5xl text-comic-black md:text-7xl">
+            Built for the whole fandom
+          </h2>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {highlights.map(({ title, copy, href }, i) => {
+              const cardContent = (
+                <>
+                  <div className="mb-3 inline-block border-[3px] border-comic-black bg-comic-black px-2 font-display text-white">
+                    #{i + 1}
+                  </div>
+                  <h3 className="font-display text-3xl text-comic-black">{title}</h3>
+                  <p className="mt-2 text-comic-black">{copy}</p>
+                </>
+              );
 
-            if (DEMO_HOMEPAGE_ONLY) {
+              if (DEMO_HOMEPAGE_ONLY) {
+                return (
+                  <div
+                    key={title}
+                    className="comic-panel bg-white p-5 opacity-50"
+                    aria-disabled="true"
+                  >
+                    {cardContent}
+                  </div>
+                );
+              }
+
               return (
-                <div
+                <Link
                   key={title}
-                  className="comic-panel flex flex-col gap-3 rounded-2xl bg-white p-5 opacity-50"
-                  aria-disabled="true"
+                  href={href}
+                  className="comic-panel motion-safe-wiggle block bg-white p-5 transition-transform duration-150"
                 >
                   {cardContent}
-                </div>
+                </Link>
               );
-            }
-
-            return (
-              <Link
-                key={title}
-                href={href}
-                className="comic-panel motion-safe-wiggle flex flex-col gap-3 rounded-2xl bg-white p-5 transition-transform duration-150"
-              >
-                {cardContent}
-              </Link>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* Access tiers */}
-      <section className="border-y-4 border-comic-black bg-warm-white px-4 py-20 sm:px-6">
-        <div className="mx-auto max-w-6xl">
-          <SectionHeading eyebrow="How to join" title="Three ways in" align="center" />
-          <p className="mx-auto mt-3 max-w-xl text-center text-comic-black/70">
-            One paid ticket, two free community passes — here&apos;s how fans get in.
-          </p>
-          <div className="mt-10 grid gap-8 sm:grid-cols-3">
-            <TierBlock
-              color="red"
-              label="FREE"
-              title="SKC Fan Pass"
-              description="Your entry into the SKC community — track Quest progress and your Explorer badge."
-              href="/my-skc"
-              cta="Claim it"
-              disabled={DEMO_HOMEPAGE_ONLY}
-            />
-            <TierBlock
-              color="blue"
-              label="TICKET"
-              title="Get Tickets"
-              description="Buy your ticket online. Have a code from an influencer? Add it for 10% off."
-              href="/tickets"
-              cta="Get tickets"
-              disabled={DEMO_HOMEPAGE_ONLY}
-            />
-            <TierBlock
-              color="green"
-              label="QUEST"
-              title="Guest Pass"
-              description="Open a guest pass at the event and complete checkpoints to earn your Explorer badge."
-              href="/my-skc"
-              cta="Learn more"
-              disabled={DEMO_HOMEPAGE_ONLY}
-            />
+            })}
           </div>
         </div>
       </section>
 
-      {/* Countdown */}
-      <section className="halftone-red border-b-4 border-comic-black bg-comic-black px-4 py-20 text-center sm:px-6">
-        <p className="font-display text-sm tracking-[0.3em] text-golden-orange uppercase">
-          Mark your calendar
-        </p>
-        <h2 className="font-display mt-2 text-4xl text-white sm:text-5xl">
-          {upcomingEvent.title} Starts In
+      {/* Access tiers */}
+      <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+        <h2 className="font-display mb-2 text-5xl text-comic-black md:text-7xl">
+          Three ways in
         </h2>
-        <div className="mx-auto mt-8 max-w-xl">
+        <p className="mb-8 text-lg font-bold text-comic-black">
+          One paid ticket, two free community passes.
+        </p>
+        <div className="grid gap-8 md:grid-cols-3">
+          <TierBlock
+            color="green"
+            label="FREE"
+            title="SKC Fan Pass"
+            description="Track Quest progress and earn your Explorer badge."
+            href="/my-skc"
+            cta="Claim it"
+            disabled={DEMO_HOMEPAGE_ONLY}
+          />
+          <TierBlock
+            color="red"
+            label="TICKET"
+            title="Get Tickets"
+            description="Buy online. Influencer code? Get 10% off."
+            href="/tickets"
+            cta="Get tickets"
+            disabled={DEMO_HOMEPAGE_ONLY}
+          />
+          <TierBlock
+            color="orange"
+            label="QUEST"
+            title="Guest Pass"
+            description="Complete checkpoints at the event for your Explorer badge."
+            href="/my-skc"
+            cta="Learn more"
+            disabled={DEMO_HOMEPAGE_ONLY}
+          />
+        </div>
+      </section>
+
+      {/* Countdown */}
+      <section className="border-y-4 border-comic-black bg-comic-black px-4 py-16 text-center sm:px-6">
+        <div className="mx-auto max-w-5xl">
+          <h2 className="text-outline font-display mb-2 text-5xl text-golden-orange md:text-7xl">
+            {upcomingEvent.title}
+          </h2>
+          <p className="mb-10 font-bold text-white">
+            {shortDate(upcomingEvent.event_date)} · {upcomingEvent.venue} · venue &amp; time TBC
+          </p>
           <Countdown targetIso={`${upcomingEvent.event_date}T00:00:00+03:00`} />
         </div>
-        <p className="mt-4 text-xs text-white/50">
-          Exact start time TBC — {formatEventDate(upcomingEvent.event_date)},{" "}
-          {upcomingEvent.venue}.
-        </p>
       </section>
 
       {/* Venue */}
@@ -340,49 +303,23 @@ export default async function HomePage() {
       </section>
 
       {/* Fan Pass CTA */}
-      <section className="border-y-4 border-comic-black bg-hero-green text-white">
-        <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-4 py-16 text-center sm:px-6">
-          <h2 className="font-display text-4xl sm:text-5xl">Get your free SKC Fan Pass</h2>
-          <p className="max-w-xl text-white/90">
-            The Fan Pass is free, forever. Track your Quest progress, your XP and
-            your Explorer badge — no payment, ever.
+      <section className="mx-auto max-w-4xl px-4 py-20 text-center sm:px-6">
+        <div className="halftone comic-panel -rotate-1 bg-sky-blue p-10">
+          <h2 className="font-display text-5xl text-comic-black md:text-6xl">
+            Get your free Fan Pass!
+          </h2>
+          <p className="mx-auto mt-4 max-w-xl text-lg font-bold text-comic-black">
+            Free, forever. Track your Quest progress, XP and Explorer badge —
+            no payment, ever.
           </p>
-          <ComicButton href="/my-skc" variant="outline" disabled={DEMO_HOMEPAGE_ONLY}>
-            Claim your Fan Pass
-          </ComicButton>
+          <div className="mt-8 flex justify-center">
+            <ComicButton href="/my-skc" variant="red" disabled={DEMO_HOMEPAGE_ONLY}>
+              Claim your Fan Pass
+            </ComicButton>
+          </div>
         </div>
       </section>
 
-      {/* Past events teaser */}
-      {pastEvents.length > 0 && (
-        <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <SectionHeading eyebrow="Relive it" title="From the last SKC" />
-            {DEMO_HOMEPAGE_ONLY ? (
-              <span
-                className="font-sans text-sm font-bold text-comic-red/40"
-                aria-disabled="true"
-              >
-                See the full gallery →
-              </span>
-            ) : (
-              <Link
-                href="/past-events"
-                className="font-sans text-sm font-bold text-comic-red hover:underline"
-              >
-                See the full gallery →
-              </Link>
-            )}
-          </div>
-          <div className="mt-8">
-            <GalleryGrid
-              images={SKC_AUG_2026_GALLERY}
-              limit={8}
-              altPrefix="Swahili Komik Con — 2 August 2026"
-            />
-          </div>
-        </section>
-      )}
     </div>
   );
 }

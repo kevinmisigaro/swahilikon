@@ -12,11 +12,16 @@ function getRemaining(target: number) {
   };
 }
 
-const UNITS: { key: keyof ReturnType<typeof getRemaining>; label: string }[] = [
-  { key: "days", label: "Days" },
-  { key: "hours", label: "Hours" },
-  { key: "mins", label: "Mins" },
-  { key: "secs", label: "Secs" },
+const UNITS: {
+  key: keyof ReturnType<typeof getRemaining>;
+  label: string;
+  color: string;
+  rotate: string;
+}[] = [
+  { key: "days", label: "Days", color: "bg-comic-red text-white", rotate: "-rotate-2" },
+  { key: "hours", label: "Hours", color: "bg-sky-blue text-comic-black", rotate: "rotate-2" },
+  { key: "mins", label: "Mins", color: "bg-golden-orange text-comic-black", rotate: "-rotate-2" },
+  { key: "secs", label: "Secs", color: "bg-hero-green text-white", rotate: "rotate-2" },
 ];
 
 export function Countdown({ targetIso }: { targetIso: string }) {
@@ -33,18 +38,16 @@ export function Countdown({ targetIso }: { targetIso: string }) {
   }, [target]);
 
   return (
-    <div className="grid grid-cols-4 gap-3 sm:gap-5">
-      {UNITS.map(({ key, label }) => (
+    <div className="grid grid-cols-4 gap-3 md:gap-6">
+      {UNITS.map(({ key, label, color, rotate }) => (
         <div
           key={key}
-          className="comic-panel flex flex-col items-center rounded-2xl bg-comic-black px-2 py-4 sm:px-4 sm:py-6"
+          className={`comic-panel p-3 text-center md:p-6 ${color} ${rotate}`}
         >
-          <span className="font-display text-4xl text-action-orange sm:text-6xl">
+          <div className="font-display text-4xl md:text-7xl">
             {remaining ? String(remaining[key]).padStart(2, "0") : "00"}
-          </span>
-          <span className="mt-1 text-[11px] font-bold tracking-[0.2em] text-white/70 uppercase sm:text-xs">
-            {label}
-          </span>
+          </div>
+          <div className="font-bold uppercase">{label}</div>
         </div>
       ))}
     </div>

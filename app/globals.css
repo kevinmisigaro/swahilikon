@@ -61,6 +61,30 @@ h3,
   box-shadow: 4px 4px 0 var(--color-comic-black);
 }
 
+/* Sharp-cornered ink-outline button, used for the header CTA */
+.btn-comic {
+  display: inline-block;
+  font-family: var(--font-display), "Bangers", cursive;
+  font-size: 1.5rem;
+  letter-spacing: 0.06em;
+  padding: 0.5rem 1.5rem;
+  border: 3px solid var(--color-comic-black);
+  box-shadow: 5px 5px 0 var(--color-comic-black);
+  transition:
+    transform 0.1s,
+    box-shadow 0.1s;
+}
+
+.btn-comic:hover {
+  transform: translate(-2px, -2px) rotate(-1deg);
+  box-shadow: 7px 7px 0 var(--color-comic-black);
+}
+
+.btn-comic:active {
+  transform: translate(3px, 3px);
+  box-shadow: 2px 2px 0 var(--color-comic-black);
+}
+
 /* Halftone dot texture, used as a decorative background layer */
 .halftone {
   background-image: radial-gradient(
@@ -114,6 +138,7 @@ h3,
 .text-outline {
   -webkit-text-stroke: 2px var(--color-comic-black);
   paint-order: stroke fill;
+  text-shadow: 4px 4px 0 var(--color-comic-black);
 }
 
 .bg-grain {
@@ -127,4 +152,63 @@ h3,
 ::selection {
   background: var(--color-golden-orange);
   color: var(--color-comic-black);
+}
+
+/* Rotated, bordered tag — e.g. the "Issue # · date" strip on the hero photo */
+.skc-caption {
+  border: 3px solid var(--color-comic-black);
+  box-shadow: 4px 4px 0 var(--color-comic-black);
+  font-family: var(--font-display), "Bangers", cursive;
+  letter-spacing: 0.06em;
+}
+
+/* Starburst "KAPOW!" badge */
+.skc-burst {
+  clip-path: polygon(
+    50% 0%,
+    61% 18%,
+    82% 8%,
+    78% 30%,
+    100% 35%,
+    83% 50%,
+    100% 65%,
+    78% 70%,
+    82% 92%,
+    61% 82%,
+    50% 100%,
+    39% 82%,
+    18% 92%,
+    22% 70%,
+    0% 65%,
+    17% 50%,
+    0% 35%,
+    22% 30%,
+    18% 8%,
+    39% 18%
+  );
+}
+
+@keyframes skc-pop {
+  0% {
+    transform: scale(0) rotate(-20deg);
+  }
+  70% {
+    transform: scale(1.15) rotate(14deg);
+  }
+  100% {
+    transform: scale(1) rotate(10deg);
+  }
+}
+
+.animate-skc-pop {
+  animation: skc-pop 0.6s cubic-bezier(0.3, 1.6, 0.5, 1) 0.3s both;
+}
+
+/* Diagonal speed-line texture behind the hero panel */
+.skc-speed-lines {
+  background: repeating-conic-gradient(
+    from 0deg at 50% 60%,
+    var(--color-comic-red) 0deg 6deg,
+    var(--color-action-orange) 6deg 12deg
+  );
 }

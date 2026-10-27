@@ -13,7 +13,6 @@ const links = [
   { href: "/explore", label: "Explore" },
   { href: "/quest", label: "Quest" },
   { href: "/past-events", label: "Past Events" },
-  { href: "/tickets", label: "Get Tickets" },
   { href: "/my-skc", label: "My SKC" },
 ];
 
@@ -30,24 +29,22 @@ export function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b-4 border-comic-black bg-warm-white/95 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
+    <header className="sticky top-0 z-50 border-b-4 border-comic-black bg-warm-white">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
         <Link href="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
-          <span className="comic-panel-sm flex h-10 w-10 items-center justify-center rounded-full bg-comic-red font-display text-xl text-white">
-            S
+          <span className="grid h-11 w-11 -rotate-6 place-items-center border-[3px] border-comic-black bg-comic-red font-display text-lg text-white shadow-[5px_5px_0_var(--color-comic-black)]">
+            SKC
           </span>
-          <span className="font-display text-2xl text-comic-black sm:text-3xl">
-            Swahili Komik Con
-          </span>
+          <span className="font-display text-2xl text-comic-black">Swahili Komik Con</span>
         </Link>
 
-        <nav className="hidden items-center gap-1 lg:flex">
+        <nav className="hidden gap-5 font-sans font-bold uppercase lg:flex">
           {links.map((link) =>
             isLocked(link.href) ? (
               <span
                 key={link.href}
                 aria-disabled="true"
-                className="cursor-not-allowed rounded-full px-4 py-2 font-sans text-sm font-semibold text-comic-black/40"
+                className="cursor-not-allowed text-comic-black/40"
               >
                 {link.label}
               </span>
@@ -56,10 +53,8 @@ export function Navbar() {
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  "rounded-full px-4 py-2 font-sans text-sm font-semibold transition-colors",
-                  isActive(link.href)
-                    ? "bg-comic-black text-white"
-                    : "text-comic-black hover:bg-comic-black/10",
+                  "transition-colors hover:text-comic-red",
+                  isActive(link.href) ? "text-comic-red" : "text-comic-black",
                 )}
               >
                 {link.label}
@@ -68,14 +63,25 @@ export function Navbar() {
           )}
         </nav>
 
-        <button
-          className="comic-panel-sm rounded-full bg-white p-2 lg:hidden"
-          aria-label={open ? "Close menu" : "Open menu"}
-          aria-expanded={open}
-          onClick={() => setOpen((v) => !v)}
-        >
-          {open ? <X size={22} /> : <Menu size={22} />}
-        </button>
+        <div className="flex items-center gap-3">
+          {DEMO_HOMEPAGE_ONLY ? (
+            <span className="btn-comic bg-comic-red text-white opacity-50" aria-disabled="true">
+              Get Tickets
+            </span>
+          ) : (
+            <Link href="/tickets" className="btn-comic bg-comic-red text-white">
+              Get Tickets
+            </Link>
+          )}
+          <button
+            className="comic-panel-sm rounded-full bg-white p-2 lg:hidden"
+            aria-label={open ? "Close menu" : "Open menu"}
+            aria-expanded={open}
+            onClick={() => setOpen((v) => !v)}
+          >
+            {open ? <X size={22} /> : <Menu size={22} />}
+          </button>
+        </div>
       </div>
 
       {open && (
