@@ -200,8 +200,16 @@ export const TANZANIA_MOBILE_NETWORKS: { id: TanzaniaMobileNetwork; label: strin
 // suffix; Vodacom (M-Pesa) is the one major Tanzania network with no named
 // entry, which is why the unsuffixed code is mapped to it here — that's an
 // inference, not a confirmed mapping (DPO's response never names it as
-// "Vodacom" or "Mpesa"). Confirm with DPO support and correct via
-// DPO_MNO_MPESA before relying on this in production.
+// "Vodacom" or "Mpesa").
+//
+// Live-tested against the DPO test account (2026-10-28, ChargeTokenMobile
+// with carrier-correct MSISDN prefixes): mixx_by_yas and airtel_money both
+// push successfully (StatusCode 130). mpesa and halopesa both come back
+// <Result>956</Result> "Terminal not found" — those two networks aren't
+// provisioned on this merchant account yet (not a code bug). Ask DPO support
+// to enable Vodacom M-Pesa and HaloPesa mobile money on the account, and
+// reconfirm the mpesa code (unsuffixed Selcom_webPay was a guess) once they
+// do — correct via DPO_MNO_MPESA / DPO_MNO_HALOPESA if needed.
 const TANZANIA_MNO_CODES: Record<TanzaniaMobileNetwork, string> = {
   mixx_by_yas: process.env.DPO_MNO_MIXX_BY_YAS ?? "TIGOdebitMandate",
   airtel_money: process.env.DPO_MNO_AIRTEL_MONEY ?? "Selcom_webPay_Airtel",
