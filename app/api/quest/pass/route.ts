@@ -29,15 +29,14 @@ export async function POST(request: Request) {
   try {
     const supabase = await createClient();
     const { data, error } = await supabase
-      .from("fan_passes")
-      .insert({
-        holder_name: parsed.data.name,
-        holder_email: parsed.data.email || null,
+      .rpc("create_fan_pass", {
+        p_holder_name: parsed.data.name,
+        p_holder_email: parsed.data.email || null,
       })
-      .select("pass_code, holder_name, xp, badge, created_at")
       .single();
 
     if (error || !data) {
+      console.error("[quest/pass] create_fan_pass failed", error);
       return NextResponse.json(
         { error: "We couldn't create your Quest pass. Please try again." },
         { status: 500 },

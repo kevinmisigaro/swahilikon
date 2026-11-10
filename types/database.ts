@@ -365,6 +365,16 @@ export interface Database {
           created_at: string;
         }[];
       };
+      create_fan_pass: {
+        Args: { p_holder_name: string; p_holder_email?: string | null };
+        Returns: {
+          pass_code: string;
+          holder_name: string;
+          xp: number;
+          badge: string | null;
+          created_at: string;
+        }[];
+      };
       get_quest_status: {
         Args: { p_pass_code: string };
         Returns: {
