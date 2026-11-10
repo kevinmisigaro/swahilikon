@@ -80,11 +80,11 @@ export default async function EventDetailPage({
               <p className="text-center font-display text-2xl text-comic-black">
                 {formatMoney(event.price_cents, event.currency)}
               </p>
-              <ComicButton href="/tickets" variant="red" className="w-full">
-                Get Tickets
+              <ComicButton href="/my-skc" variant="red" className="w-full">
+                Log In
               </ComicButton>
               <p className="text-center text-xs text-comic-black/60">
-                Have a referral code? Add it at checkout for 10% off.
+                Sign in to manage your SKC profile for this event.
               </p>
             </div>
           )}

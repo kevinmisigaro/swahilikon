@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Ticket } from "lucide-react";
+import { ArrowRight, UserCircle } from "lucide-react";
 import { ComicButton } from "@/components/ui/ComicButton";
 import { TierBlock } from "@/components/site/TierBlock";
 import { Countdown } from "@/components/site/Countdown";
@@ -95,8 +95,8 @@ export default async function HomePage() {
                 East Africa&apos;s home for the fandom — online, and live in {shortVenue}.
               </p>
               <div className="mt-5 flex flex-wrap gap-4">
-                <ComicButton href="/tickets" variant="red" disabled={DEMO_HOMEPAGE_ONLY}>
-                  Get Tickets!
+                <ComicButton href="/my-skc" variant="red" disabled={DEMO_HOMEPAGE_ONLY}>
+                  Log In!
                 </ComicButton>
                 <ComicButton href="/my-skc" variant="blue" disabled={DEMO_HOMEPAGE_ONLY}>
                   Free Fan Pass
@@ -167,20 +167,20 @@ export default async function HomePage() {
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 px-4 py-8 text-center sm:flex-row sm:justify-between sm:px-6 sm:text-left">
           <div className="flex items-center gap-3">
             <span className="comic-panel-sm flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-comic-black text-white">
-              <Ticket size={22} />
+              <UserCircle size={22} />
             </span>
             <p className="font-sans text-base font-semibold text-comic-black">
-              Got an influencer referral code for {upcomingEvent.title}? Add
-              it at checkout for 10% off your ticket.
+              Sign in to manage your SKC profile and track your Quest progress
+              for {upcomingEvent.title}.
             </p>
           </div>
           <ComicButton
-            href="/tickets"
+            href="/my-skc"
             variant="black"
             className="shrink-0"
             disabled={DEMO_HOMEPAGE_ONLY}
           >
-            Get Tickets <ArrowRight size={18} />
+            Log In <ArrowRight size={18} />
           </ComicButton>
         </div>
       </section>
@@ -249,11 +249,11 @@ export default async function HomePage() {
           />
           <TierBlock
             color="red"
-            label="TICKET"
-            title="Get Tickets"
-            description="Buy online. Influencer code? Get 10% off."
-            href="/tickets"
-            cta="Get tickets"
+            label="ACCOUNT"
+            title="Log In"
+            description="Manage your SKC profile and keep your Quest progress synced."
+            href="/my-skc"
+            cta="Log in"
             disabled={DEMO_HOMEPAGE_ONLY}
           />
           <TierBlock

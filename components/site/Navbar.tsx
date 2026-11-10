@@ -66,11 +66,11 @@ export function Navbar() {
         <div className="flex items-center gap-3">
           {DEMO_HOMEPAGE_ONLY ? (
             <span className="btn-comic bg-comic-red text-white opacity-50" aria-disabled="true">
-              Get Tickets
+              Log In
             </span>
           ) : (
-            <Link href="/tickets" className="btn-comic bg-comic-red text-white">
-              Get Tickets
+            <Link href="/my-skc" className="btn-comic bg-comic-red text-white">
+              Log In
             </Link>
           )}
           <button
