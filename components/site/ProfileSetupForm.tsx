@@ -7,6 +7,9 @@ import { MEMBER_ROLES, getRoleConfig } from "@/lib/data/roles";
 import type { MemberRole } from "@/types/database";
 import { cn } from "@/lib/utils";
 
+// Must match the bio limit enforced by /api/profile.
+const BIO_MAX_LENGTH = 500;
+
 interface ProfileData {
   display_name: string;
   role: MemberRole;
@@ -28,6 +31,7 @@ export function ProfileSetupForm({
   const [detail, setDetail] = useState(
     typeof initial?.details?.note === "string" ? (initial.details.note as string) : "",
   );
+  const [bio, setBio] = useState(initial?.bio ?? "");
   const [marketingOptIn, setMarketingOptIn] = useState(initial?.marketing_opt_in ?? false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,6 +49,10 @@ export function ProfileSetupForm({
         body: JSON.stringify({
           displayName,
           role,
+          bio: bio.trim(),
+          // The form has no interests editor yet; keep whatever is saved so
+          // editing the profile doesn't wipe them.
+          interests: initial?.interests ?? [],
           details: detail ? { note: detail } : {},
           marketingOptIn,
         }),
@@ -116,6 +124,26 @@ export function ProfileSetupForm({
           onChange={(e) => setDetail(e.target.value)}
           placeholder={config.detailPlaceholder}
           className="w-full rounded-xl border-2 border-comic-black px-4 py-3 focus:ring-4 focus:ring-golden-orange/40 focus:outline-none"
+        />
+      </div>
+
+      <div className="mt-6">
+        <div className="mb-1 flex items-baseline justify-between">
+          <label htmlFor="bio" className="block text-sm font-bold text-comic-black">
+            About you (optional)
+          </label>
+          <span className="text-xs text-comic-black/50">
+            {bio.length}/{BIO_MAX_LENGTH}
+          </span>
+        </div>
+        <textarea
+          id="bio"
+          rows={4}
+          maxLength={BIO_MAX_LENGTH}
+          value={bio}
+          onChange={(e) => setBio(e.target.value)}
+          placeholder="Favourite comics, anime, characters you cosplay — tell the SKC community about yourself."
+          className="w-full resize-y rounded-xl border-2 border-comic-black px-4 py-3 focus:ring-4 focus:ring-golden-orange/40 focus:outline-none"
         />
       </div>
 

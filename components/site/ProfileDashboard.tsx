@@ -69,6 +69,12 @@ export function ProfileDashboard({
         <RoleBadge role={profile.role} />
       </div>
 
+      {profile.bio && (
+        <p className="mt-4 whitespace-pre-line break-words text-sm text-comic-black/80">
+          {profile.bio}
+        </p>
+      )}
+
       <div className="mt-5 rounded-xl border-2 border-comic-black/15 bg-warm-white p-4 text-left text-sm text-comic-black/80">
         <p>{config.description}</p>
         {note && (
