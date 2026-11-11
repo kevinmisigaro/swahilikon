@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
@@ -32,11 +33,15 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-50 border-b-4 border-comic-black bg-warm-white">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-        <Link href="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
-          <span className="grid h-11 w-11 -rotate-6 place-items-center border-[3px] border-comic-black bg-comic-red font-display text-lg text-white shadow-[5px_5px_0_var(--color-comic-black)]">
-            SKC
-          </span>
-          <span className="font-display text-2xl text-comic-black">Swahili Komik Con</span>
+        <Link href="/" className="flex items-center" onClick={() => setOpen(false)}>
+          <Image
+            src="/images/logo.png"
+            alt="Swahili Komik Con"
+            width={485}
+            height={220}
+            priority
+            className="h-10 w-auto sm:h-12"
+          />
         </Link>
 
         <nav className="hidden gap-5 font-sans font-bold uppercase lg:flex">
