@@ -18,6 +18,7 @@ export type MemberRole =
   | "vendor"
   | "instructor"
   | "influencer";
+export type ComicSubmissionStatus = "pending" | "approved" | "rejected";
 
 export interface Database {
   public: {
@@ -297,6 +298,55 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["quest_redemptions"]["Insert"]>;
         Relationships: [];
       };
+      comic_submissions: {
+        Row: {
+          id: string;
+          // null for an official SKC-team comic; set for a member upload.
+          owner_id: string | null;
+          is_official: boolean;
+          slug: string;
+          title: string;
+          subtitle: string | null;
+          creator: string;
+          partners: string[];
+          language: string;
+          description: string;
+          content_note: string | null;
+          page_count: number;
+          page_width: number;
+          page_height: number;
+          status: ComicSubmissionStatus;
+          rejection_reason: string | null;
+          reviewed_by: string | null;
+          reviewed_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          owner_id?: string | null;
+          is_official?: boolean;
+          slug: string;
+          title: string;
+          subtitle?: string | null;
+          creator: string;
+          partners?: string[];
+          language?: string;
+          description: string;
+          content_note?: string | null;
+          page_count: number;
+          page_width: number;
+          page_height: number;
+          status?: ComicSubmissionStatus;
+          rejection_reason?: string | null;
+          reviewed_by?: string | null;
+          reviewed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["comic_submissions"]["Insert"]>;
+        Relationships: [];
+      };
       admin_profiles: {
         Row: {
           id: string;
@@ -407,6 +457,14 @@ export interface Database {
           badges_awarded: number;
           redemptions: number;
         }[];
+      };
+      review_comic_submission: {
+        Args: {
+          p_submission_id: string;
+          p_status: string;
+          p_rejection_reason?: string | null;
+        };
+        Returns: { status: string }[];
       };
     };
     Enums: Record<string, never>;

@@ -7,6 +7,7 @@ import { AuthPanel } from "@/components/site/AuthPanel";
 import { ProfileSetupForm } from "@/components/site/ProfileSetupForm";
 import { ProfileDashboard } from "@/components/site/ProfileDashboard";
 import { FanPassPanel } from "@/components/site/FanPassPanel";
+import { MyComicsPanel } from "@/components/site/MyComicsPanel";
 import type { MemberRole } from "@/types/database";
 
 interface ProfileData {
@@ -78,14 +79,17 @@ export function MySkcDashboard() {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[320px_1fr] lg:items-start lg:gap-8">
-      <ProfileDashboard
-        email={state.email}
-        profile={state.profile}
-        onSignedOut={refresh}
-        onProfileUpdated={() => refresh()}
-      />
-      <FanPassPanel signedIn />
+    <div className="space-y-8">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[320px_1fr] lg:items-start lg:gap-8">
+        <ProfileDashboard
+          email={state.email}
+          profile={state.profile}
+          onSignedOut={refresh}
+          onProfileUpdated={() => refresh()}
+        />
+        <FanPassPanel signedIn />
+      </div>
+      <MyComicsPanel />
     </div>
   );
 }

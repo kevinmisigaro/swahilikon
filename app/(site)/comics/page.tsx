@@ -4,11 +4,15 @@ import Link from "next/link";
 import { BookOpen } from "lucide-react";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Badge } from "@/components/ui/Badge";
-import { COMICS } from "@/lib/data/comics";
+import { getPublishedComics } from "@/lib/comics/submissions";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Comics" };
 
-export default function ComicsPage() {
+export default async function ComicsPage() {
+  const supabase = await createClient();
+  const comics = await getPublishedComics(supabase);
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
       <SectionHeading eyebrow="Read online" title="Comics" />
@@ -17,7 +21,7 @@ export default function ComicsPage() {
       </p>
 
       <div className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-        {COMICS.map((comic) => (
+        {comics.map((comic) => (
           <Link
             key={comic.slug}
             href={`/comics/${comic.slug}`}
@@ -32,8 +36,15 @@ export default function ComicsPage() {
                 sizes="(min-width: 1024px) 360px, (min-width: 640px) 50vw, 100vw"
               />
               {/* Solid backing so the translucent badge stays legible over cover art. */}
-              <div className="absolute top-3 left-3 rounded-full bg-white">
-                <Badge tone="upcoming">{comic.language}</Badge>
+              <div className="absolute top-3 left-3 flex gap-2 rounded-full">
+                <span className="rounded-full bg-white">
+                  <Badge tone="upcoming">{comic.language}</Badge>
+                </span>
+                {comic.isCommunitySubmission && (
+                  <span className="rounded-full bg-white">
+                    <Badge tone="neutral">Community</Badge>
+                  </span>
+                )}
               </div>
             </div>
             <div className="p-5">

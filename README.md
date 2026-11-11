@@ -22,6 +22,14 @@ Both apps share one Supabase project.
 - SKC Quest (PRD §6): public checkpoint list, a guest Fan Pass that earns XP
   as stations are completed, and a staff console that verifies completions
   server-side so XP can only ever be awarded once per pass/checkpoint.
+- Comics: both the SKC team's own comics and member uploads live in
+  Supabase Storage. From My SKC, a signed-in member uploads a comic PDF,
+  which is rendered to page images right in their browser and stored in a
+  private Supabase Storage bucket; it goes live on the public Comics page
+  once a staff admin approves it in `skc-admin` (review happens there, not
+  on this site). The SKC team's own ("official") comics skip that review
+  step — an admin uploads them directly — see "How member comic uploads
+  work" below.
 
 ## Stack
 
@@ -44,9 +52,24 @@ If you haven't already run it for `skc-admin`, apply the schema:
    `events.price_cents`/`currency`, makes referral codes reusable discount
    codes (`discount_percent`/`commission_percent`), renames `redemptions` to
    `ticket_orders`, and replaces `redeem_referral_code` with
-   `create_ticket_order` (referral code now optional). These are the same
-   migrations as in `skc-admin` — only run them once per Supabase project.
-3. Copy **Project Settings → API** into `.env.local` (copy `.env.example`
+   `create_ticket_order` (referral code now optional). Then run
+   `supabase/migrations/0004_dpo_payments.sql`,
+   `supabase/migrations/0005_create_fan_pass_rpc.sql`, and
+   `supabase/migrations/0006_comic_submissions.sql`. The last adds the
+   `comic_submissions` table, the private `comic-submissions` Storage
+   bucket, and the `review_comic_submission` RPC that `skc-admin` calls to
+   approve/reject a member's uploaded comic. These are the same migrations
+   as in `skc-admin` — only run them once per Supabase project.
+3. Once 0006 has run, populate the SKC team's own comics (currently static
+   JPEGs under `public/comics/`) into that same table/bucket:
+
+   ```bash
+   node --env-file=.env.local scripts/migrate-static-comics-to-storage.mjs
+   ```
+
+   This is a one-off import (safe to re-run) — see "How member comic
+   uploads work" below for how official vs. member comics are told apart.
+4. Copy **Project Settings → API** into `.env.local` (copy `.env.example`
    first):
 
    ```bash
@@ -91,7 +114,8 @@ immediately — see `lib/data/events.ts`.
 app/
   (site)/            Every public page — wrapped in the Navbar/Footer layout
     quest/             Public Quest rules + checkpoint list + Fan Pass panel
-    my-skc/             Free account, profile setup/dashboard, Fan Pass panel
+    my-skc/             Free account, profile setup/dashboard, Fan Pass panel, My Comics
+    comics/             Public comics listing + reader (official + approved member uploads)
     staff/quest/        Staff-only Quest verification console
   api/
     tickets/purchase/   Public ticket-order endpoint (calls the Postgres RPC)
@@ -99,16 +123,21 @@ app/
     profile/            Signed-in member's own profile (get/create/update)
     quest/               Public checkpoints, guest pass create/lookup, pass-linking
     staff/quest/         Staff-authorized approve/redeem/summary endpoints
+    comics/              Signed-in member's own comic uploads (list/create, delete by id)
 components/
   ui/                 Shared comic-styled primitives (buttons, badges, headings)
   site/               Public-site components (AuthPanel, ProfileSetupForm/Dashboard,
-                      FanPassPanel, StaffQuestConsole, TicketForm, TicketConfirmStatus, ...)
+                      FanPassPanel, StaffQuestConsole, TicketForm, TicketConfirmStatus,
+                      MyComicsPanel, ComicUploadForm, ...)
 lib/
   supabase/            Browser / server Supabase clients (anon key) + service.ts (service
                       role, payment writes only — see "How ticket payment works" below)
   payments/            DPO Pay API client + payment-status sync helper
-  data/                Server-only data-fetching helpers
+  data/                Server-only data-fetching helpers (events, roles, ...)
+  comics/              Comic type, storage path helpers, server-only lookup of approved comics
+  pdf/                 Client-only PDF-to-page-images renderer (pdf.js), used by the upload form
   email/               Resend integration
+scripts/               One-off maintenance scripts, e.g. migrate-static-comics-to-storage.mjs
 supabase/migrations/   SQL schema, RLS policies, the create_ticket_order RPC
 public/images/          Curated photos from the 2 August 2026 event
 ```
@@ -221,6 +250,40 @@ above enforce this independently of the UI). The `skc-admin` app remains
 the source of truth for admin account creation and other staff tooling —
 consider moving this console there if/when stricter origin isolation
 between public and staff sessions is required.
+
+## How comics work (official + member uploads)
+
+Every comic — the SKC team's own and member uploads alike — is a row in
+`comic_submissions` plus page JPEGs in the private `comic-submissions`
+Storage bucket. `is_official` tells the two apart:
+
+- **Official** (`is_official = true`, `owner_id = null`): the SKC team's
+  own comics. Inserted directly with `status = 'approved'` already set —
+  by `scripts/migrate-static-comics-to-storage.mjs` for the three existing
+  ones, or an admin uploading more later from `skc-admin`. Pages live at
+  `official/{submission_id}/page-001.jpg`.
+- **Member upload** (`is_official = false`, `owner_id` = the member's
+  user id): a signed-in member uploads a comic PDF from My SKC
+  (`MyComicsPanel` / `ComicUploadForm`). The PDF never reaches this app's
+  server — `lib/pdf/` renders every page to a JPEG in the browser with
+  pdf.js, and the browser uploads each page straight to the bucket at
+  `{owner_id}/{submission_id}/page-001.jpg`. Only once every page is up
+  does the browser POST the comic's metadata to `/api/comics`, which
+  re-lists that folder to confirm the page count matches before inserting
+  the row with `status = 'pending'`.
+
+RLS on both the table and the bucket (`0006_comic_submissions.sql`) lets a
+member read/delete only their own submission, and lets anyone read an
+`approved` row of either kind — but nothing lets a member set their own
+`status` or `is_official`; the only way a submission becomes `approved`
+(besides an admin inserting it as official in the first place) is the
+`review_comic_submission` RPC, which checks `is_admin()`. Per the Quest
+console note above, review is staff tooling, so it's built in
+`skc-admin`, not here — this app just reads whatever is `approved`. The
+public `/comics` page and reader read straight from
+`lib/comics/submissions.ts` (official comics first, then member uploads
+newest-first), generating a short-lived signed URL per page on each
+request.
 
 ## What's deliberately out of scope (per the PRD)
 

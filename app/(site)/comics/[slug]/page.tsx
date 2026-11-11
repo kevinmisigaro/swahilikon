@@ -4,10 +4,12 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { ComicReader } from "@/components/site/ComicReader";
-import { COMICS, getComicBySlug } from "@/lib/data/comics";
+import { getPublishedComicBySlug } from "@/lib/comics/submissions";
+import { createClient } from "@/lib/supabase/server";
 
-export function generateStaticParams() {
-  return COMICS.map((comic) => ({ slug: comic.slug }));
+async function resolveComic(slug: string) {
+  const supabase = await createClient();
+  return getPublishedComicBySlug(supabase, slug);
 }
 
 export async function generateMetadata({
@@ -16,7 +18,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const comic = getComicBySlug(slug);
+  const comic = await resolveComic(slug);
   if (!comic) return { title: "Comic" };
   return {
     title: comic.subtitle ? `${comic.title}: ${comic.subtitle}` : comic.title,
@@ -30,7 +32,7 @@ export default async function ComicReaderPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const comic = getComicBySlug(slug);
+  const comic = await resolveComic(slug);
   if (!comic) notFound();
 
   return (
@@ -46,6 +48,7 @@ export default async function ComicReaderPage({
         <div className="flex flex-wrap gap-2">
           <Badge tone="upcoming">{comic.language}</Badge>
           <Badge>{comic.pages.length} pages</Badge>
+          {comic.isCommunitySubmission && <Badge tone="neutral">Community</Badge>}
         </div>
         <h1 className="font-display mt-3 text-5xl text-comic-black sm:text-6xl">{comic.title}</h1>
         {comic.subtitle && (

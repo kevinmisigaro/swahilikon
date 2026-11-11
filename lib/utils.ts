@@ -14,6 +14,15 @@ export function formatEventDate(dateIso: string) {
   });
 }
 
+export function slugify(input: string) {
+  return input
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
+}
+
 export function formatMoney(cents: number | null | undefined, currency: string | null | undefined) {
   return new Intl.NumberFormat("en-GB", {
     style: "currency",

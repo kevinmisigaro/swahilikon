@@ -5,7 +5,7 @@ import Image from "next/image";
 import { ChevronLeft, ChevronRight, GalleryVertical, BookOpen } from "lucide-react";
 import { ComicButtonAsButton } from "@/components/ui/ComicButton";
 import { cn } from "@/lib/utils";
-import type { Comic } from "@/lib/data/comics";
+import type { Comic } from "@/lib/comics/types";
 
 type Mode = "scroll" | "page";
 
